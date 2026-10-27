@@ -50,6 +50,26 @@ export function Pronounce({ entry, refw }: { entry: Entry; refw: WordRef | Entry
   );
 }
 
+export function RelationList({ items, mode }: { items: { label: string; ref?: WordRef }[]; mode: "detail" | "intro" | "reveal" }) {
+  const atlas = useAtlas();
+  return (
+    <p>
+      {items.map(({ label, ref }) => (
+        <span className="rel" key={label}>
+          {ref && mode === "detail" ? (
+            <button className="link" onClick={() => openWord(ref.id)}>
+              {label}
+            </button>
+          ) : (
+            <span>{label}</span>
+          )}
+          <Speak url={ref ? atlas.audio(ref, "uk") : null} text={label.replace(/\s*\(.*\)\s*$/, "").trim()} accent="uk" size="sm" className="rel-speak" />
+        </span>
+      ))}
+    </p>
+  );
+}
+
 export function EntryView({ entry, mode = "detail", eager = true }: { entry: Entry; mode?: "detail" | "intro" | "reveal"; eager?: boolean }) {
   const atlas = useAtlas();
   const ref = atlas.byId.get(entry.id);
@@ -59,11 +79,13 @@ export function EntryView({ entry, mode = "detail", eager = true }: { entry: Ent
   const topicIdx = atlas.topics.findIndex((t) => t[0] === entry.topic);
   const topic = atlas.topics[topicIdx];
   const exUrls = [atlas.audio(entry, "ex"), atlas.audio(entry, "ex2")];
-  const famLinks = entry.fam.map((f) => {
-    const w = f.replace(/\s*\(.*\)\s*$/, "").trim().toLowerCase();
-    const hit = atlas.words.find((x) => x.word.toLowerCase() === w);
-    return { label: f, id: hit?.id };
-  });
+  const resolveWord = (raw: string) => {
+    const w = raw.replace(/\s*\(.*\)\s*$/, "").trim().toLowerCase();
+    return atlas.words.find((x) => x.word.toLowerCase() === w);
+  };
+  const famLinks = entry.fam.map((f) => ({ label: f, ref: resolveWord(f) }));
+  const synLinks = entry.syn.map((s) => ({ label: s, ref: resolveWord(s) }));
+  const antLinks = entry.ant.map((s) => ({ label: s, ref: resolveWord(s) }));
   const status = card ? (isMastered(card) ? "已掌握" : "学习中") : null;
 
   return (
@@ -155,29 +177,19 @@ export function EntryView({ entry, mode = "detail", eager = true }: { entry: Ent
             {famLinks.length > 0 && (
               <div>
                 <h3 className="eyebrow">词族</h3>
-                <p>
-                  {famLinks.map((f) =>
-                    f.id && mode === "detail" ? (
-                      <button key={f.label} className="link" onClick={() => openWord(f.id!)}>
-                        {f.label}
-                      </button>
-                    ) : (
-                      <span key={f.label}>{f.label}</span>
-                    ),
-                  )}
-                </p>
+                <RelationList items={famLinks} mode={mode} />
               </div>
             )}
-            {entry.syn.length > 0 && (
+            {synLinks.length > 0 && (
               <div>
                 <h3 className="eyebrow">近义</h3>
-                <p>{entry.syn.map((s) => <span key={s}>{s}</span>)}</p>
+                <RelationList items={synLinks} mode={mode} />
               </div>
             )}
-            {entry.ant.length > 0 && (
+            {antLinks.length > 0 && (
               <div>
                 <h3 className="eyebrow">反义</h3>
-                <p>{entry.ant.map((s) => <span key={s}>{s}</span>)}</p>
+                <RelationList items={antLinks} mode={mode} />
               </div>
             )}
           </section>

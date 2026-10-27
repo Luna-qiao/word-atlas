@@ -1,4 +1,4 @@
-import { BookOpen, ChevronLeft, ChevronRight, Compass, Github, Keyboard, Moon, Search, Sun, User } from "lucide-react";
+import { BookOpen, ChevronLeft, ChevronRight, ClipboardCheck, Compass, Github, Keyboard, Moon, Newspaper, PenLine, Search, Sun, User } from "lucide-react";
 import { useCallback, useEffect, useState } from "react";
 import { AtlasContext, useAtlas, useEntry } from "./atlas/context";
 import { loadOpenAtlas, loadPrivateAtlas } from "./atlas/data";
@@ -11,7 +11,10 @@ import { Learn } from "./pages/Learn";
 import { Me } from "./pages/Me";
 import { Onboarding } from "./pages/Onboarding";
 import { Practice } from "./pages/Practice";
+import { Reading } from "./pages/Reading";
+import { Review } from "./pages/Review";
 import { Today } from "./pages/Today";
+import { Writing } from "./pages/Writing";
 import { cue } from "./lib/sound";
 import { store, useStore } from "./store/store";
 import { EntryView } from "./ui/EntryView";
@@ -26,6 +29,9 @@ const NAV: { page: Route["page"]; label: string; icon: typeof Compass }[] = [
   { page: "today", label: "今日", icon: Compass },
   { page: "atlas", label: "图鉴", icon: BookOpen },
   { page: "practice", label: "练习", icon: Keyboard },
+  { page: "reading", label: "外刊", icon: Newspaper },
+  { page: "writing", label: "写作", icon: PenLine },
+  { page: "review", label: "点评", icon: ClipboardCheck },
   { page: "me", label: "我的", icon: User },
 ];
 
@@ -157,6 +163,9 @@ function Shell({ privateAvailable }: { privateAvailable: boolean }) {
         {route.page === "atlas" && <AtlasPage route={route} />}
         {route.page === "learn" && <Learn />}
         {route.page === "practice" && <Practice />}
+        {route.page === "reading" && <Reading />}
+        {route.page === "writing" && <Writing />}
+        {route.page === "review" && <Review />}
         {route.page === "me" && <Me privateAvailable={privateAvailable} />}
         {route.page === "about" && <About />}
       </main>
@@ -175,7 +184,7 @@ function Shell({ privateAvailable }: { privateAvailable: boolean }) {
       )}
 
       {!focus && (
-        <nav className="tabbar" aria-label="主导航">
+        <nav className={`tabbar ${NAV.length > 5 ? "is-dense" : ""}`} aria-label="主导航" style={{ gridTemplateColumns: `repeat(${NAV.length}, minmax(0, 1fr))` }}>
           {NAV.map(({ page, label, icon: Icon }) => (
             <a key={page} href={page === "today" ? "#/" : `#/${page}`} className={route.page === page ? "is-on" : ""} aria-current={route.page === page ? "page" : undefined}>
               <Icon size={22} strokeWidth={route.page === page ? 2.1 : 1.7} />
